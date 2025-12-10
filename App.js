@@ -11,8 +11,8 @@ import {
   Button,
 } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { useState } from "react";
-import { TouchableOpacity } from "react-native";
+import { useState, useEffect } from "react";
+import { TouchableOpacity, Alert } from "react-native";
 import "./src/i18n";
 import { useTranslation } from "react-i18next";
 import i18n from "./src/i18n";
@@ -20,9 +20,12 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
-import { reloadAsync } from "expo-updates";
 import { printToFileAsync } from "expo-print";
 import { shareAsync } from "expo-sharing";
+import { getInputValue, getDisplayValue, formatCurrency } from "./src/utils/formatters";
+import { validateNumber, parseNumber } from "./src/utils/validators";
+import Toast from "react-native-toast-message";
+import { Ionicons } from "@expo/vector-icons";
 
 const Stack = createNativeStackNavigator();
 function HomeScreen() {
@@ -35,27 +38,23 @@ function HomeScreen() {
   // custom Fields
   const [customFields, setCustomFields] = useState([]);
   // add custom fields
-  addCustomField = () => {
+  const addCustomField = () => {
     setCustomFields([
       ...customFields,
       {
         meta_id: customFields.length + 1,
-        meta_val: "value",
-        meta_fare: "value",
-        meta_quantity: "value",
-        meta_total: "value",
+        meta_val: "",
+        meta_fare: "",
+        meta_quantity: "",
+        meta_total: "",
       },
     ]);
   };
   // remove custom fields
-  removeCustomField = (index) => {
-    console.log(index);
+  const removeCustomField = (index) => {
     if (customFields.length != 0) {
-      const fields = [...customFields];
-      // fields.splice(index, 1);
-      setCustomFields(fields.filter((item, itemIndex) => itemIndex !== index));
+      setCustomFields(customFields.filter((item, itemIndex) => itemIndex !== index));
     }
-    console.log(customFields);
   };
 
   //  unit rates
@@ -118,70 +117,99 @@ function HomeScreen() {
   // main 11.80 input handler
 
   const defaultInputHandler = (enteredValue) => {
-    var priceOfOneKilo = enteredValue / 11.8;
-    setOneKiloValue(priceOfOneKilo.toFixed(2));
-    setFiveKiloValue((priceOfOneKilo * 5).toFixed(2));
-    setFifteenKiloValue((priceOfOneKilo * 15).toFixed(2));
-    setTwentyKiloValue((priceOfOneKilo * 20).toFixed(2));
-    setFourtyFiveFourKiloValue((priceOfOneKilo * 45.4).toFixed(2));
-    setTenKiloValue((priceOfOneKilo * 10).toFixed(2));
-    setThirtyFiveKiloValue((priceOfOneKilo * 35).toFixed(2));
-    setDefaultValue(enteredValue);
+    const sanitized = validateNumber(enteredValue);
+    const value = parseNumber(sanitized);
+    
+    if (value > 0) {
+      const priceOfOneKilo = value / 11.8;
+      setOneKiloValue(priceOfOneKilo.toFixed(2));
+      setFiveKiloValue((priceOfOneKilo * 5).toFixed(2));
+      setFifteenKiloValue((priceOfOneKilo * 15).toFixed(2));
+      setTwentyKiloValue((priceOfOneKilo * 20).toFixed(2));
+      setFourtyFiveFourKiloValue((priceOfOneKilo * 45.4).toFixed(2));
+      setTenKiloValue((priceOfOneKilo * 10).toFixed(2));
+      setThirtyFiveKiloValue((priceOfOneKilo * 35).toFixed(2));
+    } else {
+      setOneKiloValue((0).toFixed(2));
+      setFiveKiloValue((0).toFixed(2));
+      setFifteenKiloValue((0).toFixed(2));
+      setTwentyKiloValue((0).toFixed(2));
+      setFourtyFiveFourKiloValue((0).toFixed(2));
+      setTenKiloValue((0).toFixed(2));
+      setThirtyFiveKiloValue((0).toFixed(2));
+    }
+    setDefaultValue(sanitized);
   };
 
-  // setting fare
+  // setting fare with validation
 
   const handleOneKiloFare = (enteredValue) => {
-    setOneKiloFareValue(enteredValue);
+    const sanitized = validateNumber(enteredValue);
+    setOneKiloFareValue(parseNumber(sanitized));
   };
   const handleFiveKiloFare = (enteredValue) => {
-    setFiveKiloFareValue(enteredValue);
+    const sanitized = validateNumber(enteredValue);
+    setFiveKiloFareValue(parseNumber(sanitized));
   };
   const handleDefaultKiloFare = (enteredValue) => {
-    setDefaultFareValue(enteredValue);
+    const sanitized = validateNumber(enteredValue);
+    setDefaultFareValue(parseNumber(sanitized));
   };
 
   const handleFifteenKiloFare = (enteredValue) => {
-    setFifteenKiloFareValue(enteredValue);
+    const sanitized = validateNumber(enteredValue);
+    setFifteenKiloFareValue(parseNumber(sanitized));
   };
   const handleTwentyKiloFare = (enteredValue) => {
-    setTwentyKiloFareValue(enteredValue);
+    const sanitized = validateNumber(enteredValue);
+    setTwentyKiloFareValue(parseNumber(sanitized));
   };
   const handleFourtyFiveFourKiloFare = (enteredValue) => {
-    setFourtyFiveFourKiloFareValue(enteredValue);
+    const sanitized = validateNumber(enteredValue);
+    setFourtyFiveFourKiloFareValue(parseNumber(sanitized));
   };
   const handleElevenKiloFare = (enteredValue) => {
-    setTenKiloFareValue(enteredValue);
+    const sanitized = validateNumber(enteredValue);
+    setTenKiloFareValue(parseNumber(sanitized));
   };
   const handleFourtyFiveKiloFare = (enteredValue) => {
-    setThirtyFiveKiloFareValue(enteredValue);
+    const sanitized = validateNumber(enteredValue);
+    setThirtyFiveKiloFareValue(parseNumber(sanitized));
   };
 
-  // setting quantity
+  // setting quantity with validation
   const handleOneKiloQuantity = (enteredValue) => {
-    setOneKiloQuantityValue(enteredValue);
+    const sanitized = validateNumber(enteredValue);
+    setOneKiloQuantityValue(parseNumber(sanitized));
   };
   const handleFiveKiloQuantity = (enteredValue) => {
-    setFiveKiloQuantityValue(enteredValue);
+    const sanitized = validateNumber(enteredValue);
+    setFiveKiloQuantityValue(parseNumber(sanitized));
   };
   const handleDefaultKiloQuantity = (enteredValue) => {
-    setDefaultQuantityValuev(enteredValue);
+    const sanitized = validateNumber(enteredValue);
+    setDefaultQuantityValue(parseNumber(sanitized));
   };
 
   const handleFifteenKiloQuantity = (enteredValue) => {
-    setFifteenKiloQuantityValue(enteredValue);
+    const sanitized = validateNumber(enteredValue);
+    setFifteenKiloQuantityValue(parseNumber(sanitized));
   };
   const handleTwentyKiloQuantity = (enteredValue) => {
-    setTwentyKiloQuantityValue(enteredValue);
+    const sanitized = validateNumber(enteredValue);
+    setTwentyKiloQuantityValue(parseNumber(sanitized));
   };
   const handleFourtyFiveFourKiloQuantity = (enteredValue) => {
-    setFourtyFiveFourKiloQuantityValue(enteredValue);
+    const sanitized = validateNumber(enteredValue);
+    setFourtyFiveFourKiloQuantityValue(parseNumber(sanitized));
   };
   const handleElevenKiloQuantity = (enteredValue) => {
-    setTenKiloQuantityValue(enteredValue);
+    const sanitized = validateNumber(enteredValue);
+    setTenKiloQuantityValue(parseNumber(sanitized));
   };
   const handleFourtyFiveKiloQuantity = (enteredValue) => {
-    setThirtyFiveKiloQuantityValue(enteredValue);
+    const sanitized = validateNumber(enteredValue);
+    setThirtyFiveKiloQuantityValue(parseNumber(sanitized));
   };
 
   const html = `
@@ -332,7 +360,7 @@ function HomeScreen() {
       fourtyFiveFourKiloTotalWeight = 45.4 * fourtyFiveFourKiloQuantityValue;
       fourtyFiveFourKiloTotalAmount =
         fourtyFiveFourKiloValue * fourtyFiveFourKiloQuantityValue +
-        fourtyFiveFourKiloFareValue * oneKiloQuantityValue;
+        fourtyFiveFourKiloFareValue * fourtyFiveFourKiloQuantityValue;
       setFourtyFiveFourKiloTotalAmount(
         fourtyFiveFourKiloTotalAmount.toFixed(2)
       );
@@ -380,9 +408,51 @@ function HomeScreen() {
     }
   };
 
+  // Auto-calculate when values change
+  useEffect(() => {
+    calculateTotal();
+  }, [
+    oneKiloQuantityValue,
+    fiveKiloQuantityValue,
+    defaultQuantityValue,
+    fifteenKiloQuantityValue,
+    twentyKiloQuantityValue,
+    fourtyFiveFourKiloQuantityValue,
+    tenKiloQuantityValue,
+    thirtyFiveKiloQuantityValue,
+    oneKiloFareValue,
+    fiveKiloFareValue,
+    defaultFareValue,
+    fifteenKiloFareValue,
+    twentyKiloFareValue,
+    fourtyFiveFourKiloFareValue,
+    tenKiloFareValue,
+    thirtyFiveKiloFareValue,
+    oneKiloValue,
+    fiveKiloValue,
+    defaultValue,
+    fifteenKiloValue,
+    twentyKiloValue,
+    fourtyFiveFourKiloValue,
+    tenKiloValue,
+    thirtyFiveKiloValue,
+  ]);
+
   const resetAll = () => {
-    // set values to 0
-    setDefaultValue(0);
+    Alert.alert(
+      t("Reset All Data"),
+      t("Are you sure you want to reset all calculations? This action cannot be undone."),
+      [
+        {
+          text: t("Cancel"),
+          style: "cancel",
+        },
+        {
+          text: t("Reset"),
+          style: "destructive",
+          onPress: () => {
+            // set values to 0
+            setDefaultValue(0);
     setOneKiloValue(0);
     setFiveKiloValue(0);
     setFifteenKiloValue(0);
@@ -425,28 +495,81 @@ function HomeScreen() {
     setFourtyFiveFourKiloTotalAmount(0);
     setTenKiloTotalAmount(0);
     setThirtyFiveKiloTotalAmount(0);
+    setCustomFields([]);
+    Toast.show({
+      type: "success",
+      text1: t("Reset Complete"),
+      text2: t("All data has been cleared"),
+    });
+          },
+        },
+      ]
+    );
   };
 
-  OnCustomInputValueHandler = (value, index) => {
-    customFields[index].meta_val = value;
-    setCustomFields(customFields);
+  const OnCustomInputValueHandler = (value, index) => {
+    const updatedFields = [...customFields];
+    updatedFields[index].meta_val = value;
+    setCustomFields(updatedFields);
   };
 
-  OnCustomInputFareHandler = (value, index) => {
-    customFields[index].meta_fare = value;
-    setCustomFields(customFields);
+  const OnCustomInputFareHandler = (value, index) => {
+    const updatedFields = [...customFields];
+    updatedFields[index].meta_fare = value;
+    setCustomFields(updatedFields);
   };
-  OnCustomInputQuantityHandler = (value, index) => {
-    customFields[index].meta_quantity = value;
-    setCustomFields(customFields);
+  
+  const OnCustomInputQuantityHandler = (value, index) => {
+    const updatedFields = [...customFields];
+    updatedFields[index].meta_quantity = value;
+    setCustomFields(updatedFields);
   };
 
   let generatePDF = async () => {
-    const file = await printToFileAsync({
-      html: html,
-      base64: false,
-    });
-    await shareAsync(file.uri);
+    try {
+      if (!name || name.trim() === "") {
+        Toast.show({
+          type: "error",
+          text1: t("Name Required"),
+          text2: t("Please enter customer name before generating PDF"),
+        });
+        return;
+      }
+
+      if (totalAmount == 0 && totalWeight == 0) {
+        Toast.show({
+          type: "error",
+          text1: t("No Data"),
+          text2: t("Please enter quantities to calculate totals"),
+        });
+        return;
+      }
+
+      Toast.show({
+        type: "info",
+        text1: t("Generating PDF"),
+        text2: t("Please wait..."),
+      });
+
+      const file = await printToFileAsync({
+        html: html,
+        base64: false,
+      });
+      await shareAsync(file.uri);
+
+      Toast.show({
+        type: "success",
+        text1: t("PDF Generated"),
+        text2: t("PDF has been generated and is ready to share"),
+      });
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: t("Error"),
+        text2: t("Failed to generate PDF. Please try again."),
+      });
+      console.error("PDF generation error:", error);
+    }
   };
 
   return (
@@ -473,7 +596,7 @@ function HomeScreen() {
       <View style={styles.container}>
         <View style={{ flexDirection: "row" }}>
           <TextInput
-            value={defaultValue == 0 ? null : defaultValue.toString()}
+            value={getInputValue(defaultValue)}
             onChangeText={defaultInputHandler}
             keyboardType="number-pad"
             style={{
@@ -502,23 +625,19 @@ function HomeScreen() {
             </Text>
           </Text>
           <TextInput
-            value={oneKiloFareValue == 0 ? null : oneKiloFareValue.toString()}
+            value={getInputValue(oneKiloFareValue)}
             onChangeText={handleOneKiloFare}
             keyboardType="number-pad"
             style={{ ...styles.data2 }}
           />
           <TextInput
-            value={
-              oneKiloQuantityValue == 0 ? null : oneKiloQuantityValue.toString()
-            }
+            value={getInputValue(oneKiloQuantityValue)}
             onChangeText={handleOneKiloQuantity}
             keyboardType="number-pad"
             style={{ ...styles.data2 }}
           />
           <TextInput
-            value={
-              oneKiloTotalAmount == 0 ? null : oneKiloTotalAmount.toString()
-            }
+            value={getDisplayValue(oneKiloTotalAmount)}
             editable={false}
             style={{ ...styles.data2 }}
           />
@@ -531,25 +650,19 @@ function HomeScreen() {
             </Text>
           </Text>
           <TextInput
-            value={fiveKiloFareValue == 0 ? null : fiveKiloFareValue.toString()}
+            value={getInputValue(fiveKiloFareValue)}
             onChangeText={handleFiveKiloFare}
             keyboardType="number-pad"
             style={{ ...styles.data2 }}
           />
           <TextInput
-            value={
-              fiveKiloQuantityValue == 0
-                ? null
-                : fiveKiloQuantityValue.toString()
-            }
+            value={getInputValue(fiveKiloQuantityValue)}
             onChangeText={handleFiveKiloQuantity}
             keyboardType="number-pad"
             style={{ ...styles.data2 }}
           />
           <TextInput
-            value={
-              fiveKiloTotalAmount == 0 ? null : fiveKiloTotalAmount.toString()
-            }
+            value={getDisplayValue(fiveKiloTotalAmount)}
             editable={false}
             style={{ ...styles.data2 }}
           />
@@ -562,23 +675,19 @@ function HomeScreen() {
             </Text>
           </Text>
           <TextInput
-            value={defaultFareValue == 0 ? null : defaultFareValue.toString()}
+            value={getInputValue(defaultFareValue)}
             onChangeText={handleDefaultKiloFare}
             keyboardType="number-pad"
             style={{ ...styles.data2 }}
           />
           <TextInput
-            value={
-              defaultQuantityValue == 0 ? null : defaultQuantityValue.toString()
-            }
+            value={getInputValue(defaultQuantityValue)}
             onChangeText={handleDefaultKiloQuantity}
             keyboardType="number-pad"
             style={{ ...styles.data2 }}
           />
           <TextInput
-            value={
-              defaultTotalAmount == 0 ? null : defaultTotalAmount.toString()
-            }
+            value={getDisplayValue(defaultTotalAmount)}
             editable={false}
             style={{ ...styles.data2 }}
           />
@@ -591,29 +700,19 @@ function HomeScreen() {
             </Text>
           </Text>
           <TextInput
-            value={
-              fifteenKiloFareValue == 0 ? null : fifteenKiloFareValue.toString()
-            }
+            value={getInputValue(fifteenKiloFareValue)}
             onChangeText={handleFifteenKiloFare}
             keyboardType="number-pad"
             style={{ ...styles.data2 }}
           />
           <TextInput
-            value={
-              fifteenKiloQuantityValue == 0
-                ? null
-                : fifteenKiloQuantityValue.toString()
-            }
+            value={getInputValue(fifteenKiloQuantityValue)}
             onChangeText={handleFifteenKiloQuantity}
             keyboardType="number-pad"
             style={{ ...styles.data2 }}
           />
           <TextInput
-            value={
-              fifteenKiloTotalAmount == 0
-                ? null
-                : fifteenKiloTotalAmount.toString()
-            }
+            value={getDisplayValue(fifteenKiloTotalAmount)}
             editable={false}
             style={{ ...styles.data2 }}
           />
@@ -626,29 +725,19 @@ function HomeScreen() {
             </Text>
           </Text>
           <TextInput
-            value={
-              twentyKiloFareValue == 0 ? null : twentyKiloFareValue.toString()
-            }
+            value={getInputValue(twentyKiloFareValue)}
             onChangeText={handleTwentyKiloFare}
             keyboardType="number-pad"
             style={{ ...styles.data2 }}
           />
           <TextInput
-            value={
-              twentyKiloQuantityValue == 0
-                ? null
-                : twentyKiloQuantityValue.toString()
-            }
+            value={getInputValue(twentyKiloQuantityValue)}
             onChangeText={handleTwentyKiloQuantity}
             keyboardType="number-pad"
             style={{ ...styles.data2 }}
           />
           <TextInput
-            value={
-              twentyKiloTotalAmount == 0
-                ? null
-                : twentyKiloTotalAmount.toString()
-            }
+            value={getDisplayValue(twentyKiloTotalAmount)}
             editable={false}
             style={{ ...styles.data2 }}
           />
@@ -661,31 +750,19 @@ function HomeScreen() {
             </Text>
           </Text>
           <TextInput
-            value={
-              fourtyFiveFourKiloFareValue == 0
-                ? null
-                : fourtyFiveFourKiloFareValue.toString()
-            }
+            value={getInputValue(fourtyFiveFourKiloFareValue)}
             onChangeText={handleFourtyFiveFourKiloFare}
             keyboardType="number-pad"
             style={{ ...styles.data2 }}
           />
           <TextInput
-            value={
-              fourtyFiveFourKiloQuantityValue == 0
-                ? null
-                : fourtyFiveFourKiloQuantityValue.toString()
-            }
+            value={getInputValue(fourtyFiveFourKiloQuantityValue)}
             onChangeText={handleFourtyFiveFourKiloQuantity}
             keyboardType="number-pad"
             style={{ ...styles.data2 }}
           />
           <TextInput
-            value={
-              fourtyFiveFourKiloTotalAmount == 0
-                ? null
-                : fourtyFiveFourKiloTotalAmount.toString()
-            }
+            value={getDisplayValue(fourtyFiveFourKiloTotalAmount)}
             editable={false}
             style={{ ...styles.data2 }}
           />
@@ -698,23 +775,19 @@ function HomeScreen() {
             </Text>
           </Text>
           <TextInput
-            value={tenKiloFareValue == 0 ? null : tenKiloFareValue.toString()}
+            value={getInputValue(tenKiloFareValue)}
             onChangeText={handleElevenKiloFare}
             keyboardType="number-pad"
             style={{ ...styles.data2 }}
           />
           <TextInput
-            value={
-              tenKiloQuantityValue == 0 ? null : tenKiloQuantityValue.toString()
-            }
+            value={getInputValue(tenKiloQuantityValue)}
             onChangeText={handleElevenKiloQuantity}
             keyboardType="number-pad"
             style={{ ...styles.data2 }}
           />
           <TextInput
-            value={
-              tenKiloTotalAmount == 0 ? null : tenKiloTotalAmount.toString()
-            }
+            value={getDisplayValue(tenKiloTotalAmount)}
             editable={false}
             style={{ ...styles.data2 }}
           />
@@ -727,31 +800,19 @@ function HomeScreen() {
             </Text>
           </Text>
           <TextInput
-            value={
-              thirtyFiveKiloFareValue == 0
-                ? null
-                : thirtyFiveKiloFareValue.toString()
-            }
+            value={getInputValue(thirtyFiveKiloFareValue)}
             onChangeText={handleFourtyFiveKiloFare}
             keyboardType="number-pad"
             style={{ ...styles.data2 }}
           />
           <TextInput
-            value={
-              thirtyFiveKiloQuantityValue == 0
-                ? null
-                : thirtyFiveKiloQuantityValue.toString()
-            }
+            value={getInputValue(thirtyFiveKiloQuantityValue)}
             onChangeText={handleFourtyFiveKiloQuantity}
             keyboardType="number-pad"
             style={{ ...styles.data2 }}
           />
           <TextInput
-            value={
-              thirtyFiveKiloTotalAmount == 0
-                ? null
-                : thirtyFiveKiloTotalAmount.toString()
-            }
+            value={getDisplayValue(thirtyFiveKiloTotalAmount)}
             editable={false}
             style={{ ...styles.data2 }}
           />
@@ -762,41 +823,41 @@ function HomeScreen() {
             <View key={customInput.meta_id} style={styles.container2}>
               <TextInput
                 placeholder={t("Custom Value")}
-                value={customInput.key}
+                value={customInput.meta_val || ""}
                 onChangeText={(val) => {
-                  this.OnCustomInputValueHandler(val, key);
+                  OnCustomInputValueHandler(val, key);
                 }}
                 keyboardType="number-pad"
                 style={{ ...styles.data2 }}
               />
               <TextInput
                 placeholder={t("Custom Fare")}
-                value={customInput.key}
+                value={customInput.meta_fare || ""}
                 onChangeText={(fare) => {
-                  this.OnCustomInputFareHandler(fare, key);
+                  OnCustomInputFareHandler(fare, key);
                 }}
                 keyboardType="number-pad"
                 style={{ ...styles.data2 }}
               />
               <TextInput
                 placeholder={t("Custom Quantity")}
-                value={customInput.key}
+                value={customInput.meta_quantity || ""}
                 onChangeText={(quantity) => {
-                  this.OnCustomInputQuantityHandler(quantity, key);
+                  OnCustomInputQuantityHandler(quantity, key);
                 }}
                 keyboardType="number-pad"
                 style={{ ...styles.data2 }}
               />
               <TextInput
                 placeholder={t("Custom Total")}
-                value={customFields.meta_total}
+                value={customInput.meta_total || ""}
                 editable={false}
                 style={{ ...styles.data2 }}
               />
               <Button
                 color={"#e34f4f"}
                 title="X"
-                onPress={() => this.removeCustomField(key)}
+                onPress={() => removeCustomField(key)}
               />
             </View>
           );
@@ -844,7 +905,7 @@ function HomeScreen() {
                 flex: 1,
               }}
             >
-              {totalWeight == 0 ? null : totalWeight}
+              {totalWeight == 0 ? "0.00" : formatCurrency(totalWeight)}
             </Text>
           </View>
           <View style={styles.totalBox}>
@@ -866,7 +927,7 @@ function HomeScreen() {
                 flex: 1,
               }}
             >
-              {totalAmount == 0 ? null : totalAmount}
+              {totalAmount == 0 ? "0.00" : formatCurrency(totalAmount)}
             </Text>
           </View>
         </View>
@@ -938,37 +999,38 @@ function HomeScreen() {
 
 export default function App() {
   return (
-    <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen
-          name="Home"
-          component={HomeScreen}
-          options={{
-            title: "LPG Calculator",
-            subTitle: "Something",
-            headerRight: () => (
-              <Button
-                onPress={() => {
-                  i18n
-                    .changeLanguage(i18n.language === "en" ? "ur" : "en")
-                    .then(() => {
-                      I18nManager.forceRTL(i18n.language === "ur");
-                      //Restart()
-                      //RNRestart.Restart();
-                      reloadAsync();
-                      //DevSettings.reload()
+    <>
+      <NavigationContainer>
+        <Stack.Navigator>
+          <Stack.Screen
+            name="Home"
+            component={HomeScreen}
+            options={{
+              title: "LPG Calculator",
+              headerRight: () => (
+                <Button
+                  onPress={() => {
+                    i18n
+                      .changeLanguage(i18n.language === "en" ? "ur" : "en")
+                      .then(() => {
+                        I18nManager.forceRTL(i18n.language === "ur");
+                        //Restart()
+                        //RNRestart.Restart();
+                        DevSettings.reload();
 
-                      console.log(i18n.language);
-                    });
-                }}
-                title={i18n.language === "ur" ? "ENG" : "URD"}
-                color="#000"
-              />
-            ),
-          }}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
+                        console.log(i18n.language);
+                      });
+                  }}
+                  title={i18n.language === "ur" ? "ENG" : "URD"}
+                  color="#000"
+                />
+              ),
+            }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+      <Toast />
+    </>
   );
 }
 
