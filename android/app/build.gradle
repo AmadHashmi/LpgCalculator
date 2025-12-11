@@ -94,6 +94,9 @@ project.ext.react = [
     composeSourceMapsPath: reactNativeDir.getAbsolutePath() + "/scripts/compose-source-maps.js",
 ]
 
+// Set hermesEnabled property for Expo modules
+project.ext.hermesEnabled = project.ext.react.get("enableHermes", false)
+
 // Apply react.gradle only if it exists (React Native 0.81.5+ uses com.facebook.react plugin instead)
 def reactGradlePath = new File(reactNativeDir, "react.gradle")
 if (reactGradlePath.exists()) {
