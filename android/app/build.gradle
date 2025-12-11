@@ -292,6 +292,13 @@ android {
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
     }
+    
+    // Publishing configuration for Expo modules (required even for apps)
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+        }
+    }
 
     // applicationVariants are e.g. debug, release
     applicationVariants.all { variant ->
