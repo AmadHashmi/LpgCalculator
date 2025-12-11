@@ -36,13 +36,8 @@ buildscript {
     }
 }
 
-// Apply Expo root project plugin
-def projectRoot = rootDir.parentFile
-def expoPackagePath = ["node", "--print", "require.resolve('expo/package.json')"].execute(null, projectRoot).text.trim()
-if (expoPackagePath && !expoPackagePath.isEmpty()) {
-    apply from: new File(expoPackagePath, "../scripts/autolinking.gradle")
-    apply plugin: "expo-root-project"
-}
+// Expo root project plugin is applied via useExpoModules() in settings.gradle
+// We don't need to apply it here manually
 
 // Apply maven-publish plugin for subprojects (needed by Expo modules)
 // The old 'maven' plugin is deprecated and not available in Gradle 8+

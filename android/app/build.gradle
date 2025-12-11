@@ -293,10 +293,14 @@ android {
         }
     }
     
-    // Publishing configuration for Expo modules (required even for apps)
+    // Publishing configuration for Expo modules compatibility
+    // This creates the 'release' software component that Expo modules expect
+    apply plugin: 'maven-publish'
     publishing {
-        singleVariant("release") {
-            withSourcesJar()
+        publications {
+            release(MavenPublication) {
+                from components.release
+            }
         }
     }
 

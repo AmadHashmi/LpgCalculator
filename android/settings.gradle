@@ -1,17 +1,42 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+        google()
+    }
+}
+
 rootProject.name = 'LpgCalculator'
 
-apply from: new File(["node", "--print", "require.resolve('expo/package.json')"].execute(null, rootDir).text.trim(), "../scripts/autolinking.gradle");
-useExpoModules()
+def projectRoot = rootDir.parentFile
+def expoPackagePath = ["node", "--print", "require.resolve('expo/package.json')"].execute(null, projectRoot).text.trim()
+if (expoPackagePath && !expoPackagePath.isEmpty()) {
+    apply from: new File(expoPackagePath, "../scripts/autolinking.gradle");
+    useExpoModules()
+} else {
+    throw new GradleException("Could not find expo package. Make sure you run 'npm install' first.")
+}
 
-apply from: new File(["node", "--print", "require.resolve('@react-native-community/cli-platform-android/package.json')"].execute(null, rootDir).text.trim(), "../native_modules.gradle");
-applyNativeModulesSettingsGradle(settings)
+// Expo autolinking handles native modules, so we don't need React Native CLI autolinking
 
 include ':app'
-includeBuild(new File(["node", "--print", "require.resolve('react-native-gradle-plugin/package.json')"].execute(null, rootDir).text.trim()).getParentFile())
 
+// Include React Native Gradle plugin (required for React Native 0.71+)
+def gradlePluginPath = new File(projectRoot, "node_modules/@react-native/gradle-plugin")
+if (gradlePluginPath.exists()) {
+    includeBuild(gradlePluginPath)
+} else {
+    throw new GradleException("Could not find @react-native/gradle-plugin. Make sure you run 'npm install' first.")
+}
+
+// Include ReactAndroid if new architecture is enabled
 if (settings.hasProperty("newArchEnabled") && settings.newArchEnabled == "true") {
-  include(":ReactAndroid")
-  project(":ReactAndroid").projectDir = new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim(), "../ReactAndroid");
+    def reactNativePath = ["node", "--print", "require.resolve('react-native/package.json')"].execute(null, projectRoot).text.trim()
+    if (reactNativePath && !reactNativePath.isEmpty()) {
+        def reactNativeDir = new File(reactNativePath).getParentFile()
+        include(":ReactAndroid")
+        project(":ReactAndroid").projectDir = new File(reactNativeDir, "ReactAndroid");
+    }
 }
 
 
