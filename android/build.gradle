@@ -39,24 +39,8 @@ buildscript {
 // Expo root project plugin is applied via useExpoModules() in settings.gradle
 // We don't need to apply it here manually
 
-// Apply maven-publish plugin for subprojects (needed by Expo modules)
-// The old 'maven' plugin is deprecated and not available in Gradle 8+
-// Some older Expo modules may try to use it, but maven-publish should work as a replacement
-subprojects {
-    afterEvaluate { project ->
-        // Only apply to Android projects
-        if (project.plugins.hasPlugin('com.android.library') || project.plugins.hasPlugin('com.android.application')) {
-            // Try to apply maven-publish if not already applied
-            if (!project.plugins.hasPlugin('maven-publish')) {
-                try {
-                    project.apply plugin: 'maven-publish'
-                } catch (Exception e) {
-                    // Ignore if maven-publish can't be applied
-                }
-            }
-        }
-    }
-}
+// Expo modules handle their own publishing configuration
+// We don't need to configure it here - Expo's autolinking handles it
 
 allprojects {
     repositories {
