@@ -29,6 +29,8 @@ buildscript {
         classpath('com.android.tools.build:gradle:8.3.0')
         classpath('com.facebook.react:react-native-gradle-plugin')
         classpath('de.undercouch:gradle-download-task:4.1.2')
+        // Maven plugin for compatibility with older Expo modules (deprecated but some modules still use it)
+        // Note: In Gradle 8+, maven plugin is not available, but we try to handle it gracefully
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
@@ -40,6 +42,25 @@ def expoPackagePath = ["node", "--print", "require.resolve('expo/package.json')"
 if (expoPackagePath && !expoPackagePath.isEmpty()) {
     apply from: new File(expoPackagePath, "../scripts/autolinking.gradle")
     apply plugin: "expo-root-project"
+}
+
+// Apply maven-publish plugin for subprojects (needed by Expo modules)
+// The old 'maven' plugin is deprecated and not available in Gradle 8+
+// Some older Expo modules may try to use it, but maven-publish should work as a replacement
+subprojects {
+    afterEvaluate { project ->
+        // Only apply to Android projects
+        if (project.plugins.hasPlugin('com.android.library') || project.plugins.hasPlugin('com.android.application')) {
+            // Try to apply maven-publish if not already applied
+            if (!project.plugins.hasPlugin('maven-publish')) {
+                try {
+                    project.apply plugin: 'maven-publish'
+                } catch (Exception e) {
+                    // Ignore if maven-publish can't be applied
+                }
+            }
+        }
+    }
 }
 
 allprojects {
