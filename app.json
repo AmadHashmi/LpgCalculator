@@ -24,10 +24,6 @@
       },
       "package": "my.app.lpg",
       "versionCode": 4,
-      "compileSdkVersion": 35,
-      "targetSdkVersion": 35,
-      "buildToolsVersion": "35.0.0",
-      "enableProguardInReleaseBuilds": false,
       "permissions": [
         "android.permission.INTERNET",
         "android.permission.READ_EXTERNAL_STORAGE",

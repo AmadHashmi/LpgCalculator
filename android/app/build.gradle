@@ -1,4 +1,5 @@
 apply plugin: "com.android.application"
+apply plugin: "com.facebook.react"
 
 import com.android.build.OutputFile
 import org.apache.tools.ant.taskdefs.condition.Os
@@ -80,15 +81,28 @@ import org.apache.tools.ant.taskdefs.condition.Os
 
 def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
 
+def reactNativePath = ["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim()
+def reactNativeDir = new File(reactNativePath).getParentFile()
+
 project.ext.react = [
     entryFile: ["node", "-e", "require('expo/scripts/resolveAppEntry')", projectRoot, "android"].execute(null, rootDir).text.trim(),
     enableHermes: (findProperty('expo.jsEngine') ?: "jsc") == "hermes",
-    cliPath: new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim()).getParentFile().getAbsolutePath() + "/cli.js",
-    hermesCommand: new File(["node", "--print", "require.resolve('hermes-engine/package.json')"].execute(null, rootDir).text.trim()).getParentFile().getAbsolutePath() + "/%OS-BIN%/hermesc",
-    composeSourceMapsPath: new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim()).getParentFile().getAbsolutePath() + "/scripts/compose-source-maps.js",
+    cliPath: reactNativeDir.getAbsolutePath() + "/cli.js",
+    hermesCommand: (findProperty('expo.jsEngine') ?: "jsc") == "hermes" ? 
+        new File(["node", "--print", "require.resolve('hermes-engine/package.json')"].execute(null, rootDir).text.trim()).getParentFile().getAbsolutePath() + "/%OS-BIN%/hermesc" : 
+        null,
+    composeSourceMapsPath: reactNativeDir.getAbsolutePath() + "/scripts/compose-source-maps.js",
 ]
 
-apply from: new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim(), "../react.gradle")
+// Apply react.gradle only if it exists (React Native 0.81.5+ uses com.facebook.react plugin instead)
+def reactGradlePath = new File(reactNativeDir, "react.gradle")
+if (reactGradlePath.exists()) {
+    apply from: reactGradlePath
+} else {
+    // React Native 0.81.5+ uses the com.facebook.react plugin for bundling
+    // The plugin is already applied at the top of this file
+    println "⚠️  react.gradle not found. Using com.facebook.react plugin for bundling."
+}
 
 /**
  * Set this to true to create two separate APKs instead of one:
@@ -137,16 +151,22 @@ def reactNativeArchitectures() {
 
 android {
     ndkVersion rootProject.ext.ndkVersion
+    namespace 'my.app.lpg'
 
-    compileSdkVersion rootProject.ext.compileSdkVersion
+    compileSdk 35
 
     defaultConfig {
         applicationId 'my.app.lpg'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0.0"
+        versionCode 4
+        versionName "1.0.1"
         buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
+        
+        // Support for 16 KB memory page sizes (required for Android 15+)
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+        }
 
         if (isNewArchitectureEnabled()) {
             // We configure the NDK build only if you decide to opt-in for the New Architecture.
@@ -235,15 +255,36 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        release {
+            // Load keystore properties from file if it exists
+            def keystorePropertiesFile = rootProject.file('keystore.properties')
+            if (keystorePropertiesFile.exists()) {
+                def keystoreProperties = new Properties()
+                keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+                storeFile file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+            } else {
+                // If no keystore.properties, build unsigned AAB
+                // Google Play Console can sign it if App Signing by Google Play is enabled
+                // This is the recommended approach for new apps
+                println "⚠️  No keystore.properties found. Building unsigned AAB."
+                println "   If Google Play manages your app signing, this will work fine."
+            }
+        }
     }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
         }
         release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            // Only use signing config if keystore.properties exists
+            def keystorePropertiesFile = rootProject.file('keystore.properties')
+            if (keystorePropertiesFile.exists()) {
+                signingConfig signingConfigs.release
+            }
+            // If no keystore, build unsigned (Play Store will sign it if App Signing is enabled)
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
