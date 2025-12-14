@@ -12,7 +12,11 @@
       "backgroundColor": "#ffffff"
     },
     "assetBundlePatterns": [
-      "**/*"
+      "assets/fonts/NotoNastaliqUrdu-Regular.ttf",
+      "assets/icon.png",
+      "assets/splash.png",
+      "assets/adaptive-icon.png",
+      "assets/logo.jpeg"
     ],
     "ios": {
       "supportsTablet": true
@@ -22,7 +26,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
       },
-      "package": "my.app.lpg",
+      "package": "globalenergyservice.lpg",
       "versionCode": 4,
       "permissions": [
         "android.permission.INTERNET",
