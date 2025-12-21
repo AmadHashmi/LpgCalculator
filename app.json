@@ -4,7 +4,7 @@
     "slug": "LpgCalculator",
     "version": "1.0.1",
     "orientation": "portrait",
-    "icon": "./assets/logo.jpeg",
+    "icon": "./assets/app-icon.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
@@ -16,7 +16,8 @@
       "assets/icon.png",
       "assets/splash.png",
       "assets/adaptive-icon.png",
-      "assets/logo.jpeg"
+      "assets/logo.jpeg",
+      "assets/app-icon.png"
     ],
     "ios": {
       "supportsTablet": true,
@@ -24,7 +25,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/logo.jpeg",
+        "foregroundImage": "./assets/app-icon.png",
         "backgroundColor": "#FFFFFF"
       },
       "package": "globalenergyservice.lpg",
