@@ -19,7 +19,8 @@
       "assets/logo.jpeg"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "globalenergyservice.lpg"
     },
     "android": {
       "adaptiveIcon": {
@@ -45,7 +46,8 @@
       }
     },
     "plugins": [
-      "expo-localization"
+      "expo-localization",
+      "expo-splash-screen"
     ],
     "extra": {
       "eas": {

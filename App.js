@@ -75,6 +75,8 @@ export default function App() {
     // Hide splash screen after fonts load, error, or timeout
     const hideSplash = async () => {
       try {
+        // Add a minimum display time so users can see the splash screen
+        await new Promise(resolve => setTimeout(resolve, 1500)); // Show for at least 1.5 seconds
         await SplashScreen.hideAsync();
       } catch (error) {
         // Ignore errors if splash screen is already hidden
@@ -85,10 +87,10 @@ export default function App() {
       hideSplash();
     }
     
-    // Fallback: hide splash screen after 2 seconds even if fonts don't load
+    // Fallback: hide splash screen after 3 seconds even if fonts don't load
     const timeout = setTimeout(() => {
       hideSplash();
-    }, 2000);
+    }, 3000);
     
     return () => clearTimeout(timeout);
   }, [fontsLoaded, fontError]);
